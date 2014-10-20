@@ -13,3 +13,4 @@ And in your POM:
 
 Checkout last version [here](https://bintray.com/guestful/maven/guestful.module.pusher-client/view)
 
+[![Build Status](https://drone.io/github.com/guestful/module.pusher-client/status.png)](https://drone.io/github.com/guestful/module.pusher-client/latest)
