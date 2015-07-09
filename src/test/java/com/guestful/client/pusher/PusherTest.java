@@ -15,8 +15,8 @@
  */
 package com.guestful.client.pusher;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
