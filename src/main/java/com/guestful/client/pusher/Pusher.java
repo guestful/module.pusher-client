@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Guestful (info@guestful.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,7 @@
 package com.guestful.client.pusher;
 
 import javax.json.JsonStructure;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -118,7 +115,6 @@ public class Pusher {
         Prerequisites.nonNull("socketId", socketId);
         Prerequisites.nonNull("channel", channel);
         Prerequisites.nonNull("user", user);
-
         if (channel.startsWith("private-")) {
             throw new IllegalArgumentException("This method is for presence channels, use authenticate(String, String) to authenticate for a private channel.");
         }
@@ -130,8 +126,34 @@ public class Pusher {
         return new PusherAuth(key, signature, channelData);
     }
 
+    /**
+     * Generate authentication response to authorise a user on a private channel
+     * <p>
+     * The return value is the complete body which should be returned to a client requesting authorisation.
+     *
+     * @param socketId the socket id of the connection to authenticate
+     * @param channel  the name of the channel which the socket id should be authorised to join
+     * @return an authentication string, suitable for return to the requesting client
+     */
+    public PusherAuth authenticate(final String socketId, final String channel) {
+        Prerequisites.nonNull("socketId", socketId);
+        Prerequisites.nonNull("channel", channel);
+        if (channel.startsWith("presence-")) {
+            throw new IllegalArgumentException("This method is for private channels, use authenticate(String, String, PusherPresence) to authenticate for a presence channel.");
+        }
+        if (!channel.startsWith("private-")) {
+            throw new IllegalArgumentException("Authentication is only applicable to private and presence channels");
+        }
+        final String signature = SignatureUtil.sign(socketId + ":" + channel, secret);
+        return new PusherAuth(key, signature);
+    }
+
     Response request(String method, String path, JsonStructure body) throws PusherException {
         return request(method, path, body, new MultivaluedHashMap<>());
+    }
+
+    Response request(String method, String path) throws PusherException {
+        return request(method, path, null, new MultivaluedHashMap<>());
     }
 
     Response request(String method, String path, JsonStructure body, MultivaluedMap<String, Object> queryParams) throws PusherException {
@@ -145,9 +167,8 @@ public class Pusher {
             for (Map.Entry<String, List<Object>> entry : queryParams.entrySet()) {
                 t = t.queryParam(entry.getKey(), entry.getValue().toArray(new Object[entry.getValue().size()]));
             }
-            Response response = SignatureUtil.sign(method, t, body, queryParams, getKey(), getSecret())
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .method(method, Entity.entity(body, "application/json; charset=utf-8"));
+            Invocation.Builder builder = SignatureUtil.sign(method, t, body, queryParams, getKey(), getSecret()).request(MediaType.APPLICATION_JSON_TYPE);
+            Response response = body == null ? builder.method(method) : builder.method(method, Entity.entity(body, "application/json; charset=utf-8"));
             if (response.getStatus() != 200) {
                 throw new PusherException(response, body);
             }

@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Guestful (info@guestful.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,12 @@ package com.guestful.client.pusher;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
  */
-public class PusherAuth {
+public final class PusherAuth {
 
     private final String auth;
     private final String channelData;
@@ -50,10 +51,11 @@ public class PusherAuth {
     }
 
     public JsonObject toJson() {
-        return Json.createObjectBuilder()
-            .add("auth", getAuth())
-            .add("channel_data", getChannelData())
-            .build();
+        JsonObjectBuilder builder = Json.createObjectBuilder().add("auth", getAuth());
+        if (channelData != null) {
+            builder.add("channel_data", getChannelData());
+        }
+        return builder.build();
     }
 
     @Override

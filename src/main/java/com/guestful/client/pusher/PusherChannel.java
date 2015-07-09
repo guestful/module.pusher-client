@@ -16,9 +16,11 @@
 package com.guestful.client.pusher;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonStructure;
 import javax.ws.rs.HttpMethod;
+import java.io.StringReader;
 
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
@@ -44,6 +46,11 @@ public class PusherChannel {
     @Override
     public String toString() {
         return name;
+    }
+
+    public JsonArray getMembers() {
+        String json = getClient().request(HttpMethod.GET, "channels/" + getName() + "/users").readEntity(String.class);
+        return Json.createReader(new StringReader(json)).readObject().getJsonArray("users");
     }
 
     public void publish(String eventName, JsonStructure eventData) throws PusherException {
